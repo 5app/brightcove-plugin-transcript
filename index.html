@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Demo Brightcove Transcript Plugin</title>
+  <link href="./src/plugin.css" rel="stylesheet">
+  <style>
+    html{
+        font-family: Arial, sans-serif;
+        font-size: 1em;
+        line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Demo Brightcove Transcript Plugin</h1>
+    <p>Plugin for Brightcove Player. This follows the tutorial at <a href="https://player.support.brightcove.com/coding-topics/step-step-plugin-development.html">https://player.support.brightcove.com/coding-topics/step-step-plugin-development.html</a></p>
+</header>
+
+  <video-js id="default"
+    data-account="6101674909001"
+    data-player="nM1HqDehx"
+    data-embed="default"
+    controls=""
+    data-video-id="6363078307112"
+    data-playlist-id=""
+    data-application-id=""
+    width="960" height="540"></video-js>
+    <script src="https://players.brightcove.net/6101674909001/nM1HqDehx_default/index.min.js"></script>
+    <script src="./src/plugin.js"></script>
+    <script>videojs.getPlayer('default').displayBCTranscript();</script>
+</body>
+
+</html>
