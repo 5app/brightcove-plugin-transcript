@@ -11,21 +11,32 @@ videojs.registerPlugin('displayBCTranscript', function() {
 
     /** Transcript Dialog */
     const transcriptEl = document.createElement('nav');
-    transcriptEl.className = 'vjs-transcript';
-    transcriptEl.innerHTML = '<header></header>';
+    transcriptEl.className = 'vjs-transcript-panel';
+    transcriptEl.innerHTML = `<header></header><ol role="menu"></ol>`;
     playerEl.appendChild(transcriptEl);
 
-    /** Scroll to button */
-    const scrollToEl = document.createElement('button');
-    scrollToEl.classList.add('vjs-icon-chapters');
-    scrollToEl.setAttribute('title', 'Scroll to current');
-    scrollToEl.onclick = function() {
-        const activeEl = document.querySelector('.vjs-transcript a.active');
-        if (activeEl) {
-            activeEl.scrollIntoView({behavior: 'smooth', block: 'center'});
-        }
-    };
-    transcriptEl.querySelector('header').appendChild(scrollToEl);
+    /** Search Transcript */
+    const searchEl = document.createElement('input');
+    searchEl.setAttribute('type', 'search');
+    searchEl.setAttribute('placeholder', '🔎');
+    searchEl.addEventListener('input', (e) => {
+        e.preventDefault();
+        const query = e.target.value.trim().toLowerCase();
+        const queryRegExp = new RegExp('\\b' + query, 'i');
+        const list = document.querySelector('.vjs-transcript-panel ol[role="menu"]');
+        list.querySelectorAll('li[role="menuitem"]').forEach((el) => {
+            const content = el.textContent;
+            if (!query || content.match(queryRegExp)) {
+                el.classList.remove('vjs-hidden');
+            }
+            else {
+                el.classList.add('vjs-hidden');
+            }
+        });
+        // Highlight the text nodes
+        highlightTextNodes(query, list);
+    });
+    transcriptEl.querySelector('header').appendChild(searchEl);
 
     /** Control Bar */
     const controlBarEl = playerEl.querySelector('.vjs-control-bar');
@@ -52,8 +63,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
     transcriptEl.querySelector('header').appendChild(closeEl);
 
     /** List */
-    const listEl = document.createElement('ol');
-    transcriptEl.appendChild(listEl);
+    const listEl = transcriptEl.querySelector('ol[role="menu"]');
 
     this.on('loadeddata', async function() {
         const src = player.mediainfo?.transcripts?.find(t => t.src.startsWith('https://'))?.src;
@@ -102,9 +112,9 @@ videojs.registerPlugin('displayBCTranscript', function() {
 
         // Insert items into the player
 
-        listEl.innerHTML = '<ol role="menu">'+formattedItems.map(({start_time, end_time, content}) => {
+        listEl.innerHTML = formattedItems.map(({start_time, end_time, content}) => {
             return `<li role="menuitem"><a href="javascript: void();" data-start-time="${start_time}" data-end-time="${end_time}"><time datetime="${start_time}">${formatTime(start_time, end_time)}</time> ${content}</a></li>`;
-        }).join('') + '</ol>';
+        }).join('');
 
         listEl.onclick = function(e) {
             const {target} = e;
@@ -124,18 +134,18 @@ videojs.registerPlugin('displayBCTranscript', function() {
 
         player.on('timeupdate', function onTimeUpdate() {
             // Loop though the DOM items
-            document.querySelectorAll('.vjs-transcript a').forEach((el) => {
+            document.querySelectorAll('.vjs-transcript-panel a').forEach((el) => {
                 const startTime = el.getAttribute('data-start-time');
                 const endTime = el.getAttribute('data-end-time');
                 if (player.currentTime() >= startTime && player.currentTime() <= endTime) {
-                    el.classList.add('active');
+                    el.parentElement.classList.add('active');
                     if (!transcriptEl.matches(':hover')) {
                         // using scrollIntoView block=center caused a buggy layout shift
                         el.scrollIntoView({behavior: 'smooth', block: 'nearest'});
                     }
                 }
                 else {
-                    el.classList.remove('active');
+                    el.parentElement.classList.remove('active');
                 }
             });
         });
@@ -144,9 +154,9 @@ videojs.registerPlugin('displayBCTranscript', function() {
         toggleEl.classList.remove('vjs-hidden');
 
     });
-  });
+});
 
-  function formatTime(time, endTime) {
+function formatTime(time, endTime) {
     const date = new Date(null);
     date.setSeconds(time);
     if (endTime < 60) {
@@ -156,4 +166,59 @@ videojs.registerPlugin('displayBCTranscript', function() {
         return date.toISOString().substr(14, 5);
     }
     return date.toISOString().substr(11, 8);
-  }
+}
+
+
+function highlightTextNodes(str, article) {
+
+    if (!CSS.highlights) {
+        return;
+    }
+
+    // reset the highlights
+    CSS.highlights.clear();
+
+    if (!str) {
+        return;
+    }
+
+    // Get all text nodes
+    const treeWalker = document.createTreeWalker(article, NodeFilter.SHOW_TEXT);
+    const allTextNodes = [];
+    let currentNode = treeWalker.nextNode();
+    while (currentNode) {
+        allTextNodes.push(currentNode);
+        currentNode = treeWalker.nextNode();
+    }
+
+    // Iterate over all text nodes and find matches.
+    const ranges = allTextNodes
+        .map((el) => {
+            return { el, text: el.textContent.toLowerCase() };
+        })
+        .map(({ text, el }) => {
+            const indices = [];
+            let startPos = 0;
+            while (startPos < text.length) {
+                const index = text.indexOf(str, startPos);
+                if (index === -1) break;
+                indices.push(index);
+                startPos = index + str.length;
+            }
+
+            // Create a range object for each instance of
+            // str we found in the text node.
+            return indices.map((index) => {
+                const range = new Range();
+                range.setStart(el, index);
+                range.setEnd(el, index + str.length);
+                return range;
+            });
+        });
+
+    // Create a Highlight object for the ranges.
+    const searchResultsHighlight = new Highlight(...ranges.flat());
+
+    // Register the Highlight object in the registry.
+    CSS.highlights.set("transcript-search-results", searchResultsHighlight);
+}
