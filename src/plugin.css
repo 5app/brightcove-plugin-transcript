@@ -1,3 +1,7 @@
+.video-js {
+    container: videojs / inline-size;
+}
+
 button.vjs-transcript-toggle {
     cursor: pointer;
 }
@@ -14,15 +18,23 @@ nav.vjs-transcript {
     padding: 1em;
     opacity: 0;
     transform: translateX(-100%);
-    transition: opacity 0.5s, transform 0.5s;
+    transition: opacity 0.1s, transform 0.1s;
     min-width: 200px;
     max-width: 25%;
     width: auto;
 }
 
-    :not(.vjs-hide-controls, .vjs-user-inactive) > nav.vjs-transcript.vjs-transcript-active {
+    .vjs-transcript-active:not(.vjs-fullscreen) > nav.vjs-transcript, .vjs-transcript-active:not(.vjs-hide-controls, .vjs-user-inactive) > nav.vjs-transcript {
         transform: translateX(0);
         opacity: 1;
+    }
+
+    @container videojs (width > 600px) {
+        .vjs-transcript-active:not(.vjs-fullscreen) > *:not(nav.vjs-transcript) {
+            transition: margin-left 0.1s, width 0.1s;
+            margin-left: max(25%, 200px);
+            width: calc(100% - max(25%, 200px));
+        }
     }
 
     nav.vjs-transcript > header {
@@ -54,6 +66,11 @@ nav.vjs-transcript {
         }
 
             nav.vjs-transcript ol > li a {
+                /**
+                 * ensure the transcript is closer to the middle than the ends,
+                 * without using scrollIntoView block center - which caused a buggy layout shift
+                */
+                scroll-margin: 5em;
                 cursor: pointer;
                 font-size: 1em;
                 text-decoration: none;

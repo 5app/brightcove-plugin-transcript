@@ -38,7 +38,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
     toggleEl.setAttribute('title', 'Transcript');
     toggleEl.innerHTML = '<span class="vjs-icon-chapters" aria-hidden="true"></span><span class="vjs-control-text" aria-live="polite">Transcript</span>';
     toggleEl.onclick = function() {
-        transcriptEl.classList.toggle('vjs-transcript-active');
+        playerEl.classList.toggle('vjs-transcript-active');
     };
     controlBarEl.appendChild(toggleEl);
 
@@ -47,7 +47,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
     closeEl.setAttribute('title', 'Close');
     closeEl.classList.add('vjs-button-close', 'vjs-button');
     closeEl.onclick = function() {
-        transcriptEl.classList.remove('vjs-transcript-active');
+        playerEl.classList.remove('vjs-transcript-active');
     };
     transcriptEl.querySelector('header').appendChild(closeEl);
 
@@ -130,7 +130,8 @@ videojs.registerPlugin('displayBCTranscript', function() {
                 if (player.currentTime() >= startTime && player.currentTime() <= endTime) {
                     el.classList.add('active');
                     if (!transcriptEl.matches(':hover')) {
-                        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+                        // using scrollIntoView block=center caused a buggy layout shift
+                        el.scrollIntoView({behavior: 'smooth', block: 'nearest'});
                     }
                 }
                 else {
