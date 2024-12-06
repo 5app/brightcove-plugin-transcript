@@ -15,6 +15,9 @@ videojs.registerPlugin('displayBCTranscript', function() {
     transcriptEl.innerHTML = `<header></header><ol role="menu"></ol>`;
     playerEl.appendChild(transcriptEl);
 
+    /** List */
+    const listEl = transcriptEl.querySelector('ol[role="menu"]');
+
     /** Search Transcript */
     const searchEl = document.createElement('input');
     searchEl.setAttribute('type', 'search');
@@ -23,8 +26,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
         e.preventDefault();
         const query = e.target.value.trim().toLowerCase();
         const queryRegExp = new RegExp('\\b' + query, 'i');
-        const list = document.querySelector('.vjs-transcript-panel ol[role="menu"]');
-        list.querySelectorAll('li[role="menuitem"]').forEach((el) => {
+        listEl.querySelectorAll('li[role="menuitem"]').forEach((el) => {
             const content = el.textContent;
             if (!query || content.match(queryRegExp)) {
                 el.classList.remove('vjs-hidden');
@@ -34,7 +36,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
             }
         });
         // Highlight the text nodes
-        highlightTextNodes(query, list);
+        highlightTextNodes(query, listEl);
     });
     transcriptEl.querySelector('header').appendChild(searchEl);
 
@@ -61,9 +63,6 @@ videojs.registerPlugin('displayBCTranscript', function() {
         playerEl.classList.remove('vjs-transcript-active');
     };
     transcriptEl.querySelector('header').appendChild(closeEl);
-
-    /** List */
-    const listEl = transcriptEl.querySelector('ol[role="menu"]');
 
     this.on('loadeddata', async function() {
         const src = player.mediainfo?.transcripts?.find(t => t.src.startsWith('https://'))?.src;
@@ -134,7 +133,7 @@ videojs.registerPlugin('displayBCTranscript', function() {
 
         player.on('timeupdate', function onTimeUpdate() {
             // Loop though the DOM items
-            document.querySelectorAll('.vjs-transcript-panel a').forEach((el) => {
+            listEl.querySelectorAll('a').forEach((el) => {
                 const startTime = el.getAttribute('data-start-time');
                 const endTime = el.getAttribute('data-end-time');
                 if (player.currentTime() >= startTime && player.currentTime() <= endTime) {
