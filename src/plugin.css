@@ -53,6 +53,7 @@ nav.vjs-transcript-panel {
         nav.vjs-transcript-panel > header > input {
             background-color: inherit;
             border: inherit;
+            flex: auto 1 1;
         }
 
         nav.vjs-transcript-panel > header > button {
