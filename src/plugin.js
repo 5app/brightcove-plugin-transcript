@@ -83,9 +83,16 @@ videojs.registerPlugin('displayBCTranscript', function() {
             let current = acc.at(-1);
             // Is this a break?
             if (start_time === null) {
+                // Ignore multiple breaks
+                if (current.content === undefined) {
+                    return acc;
+                }
+
                 current.content += content;
                 // initiate a new object
                 current = {};
+
+                // If it's not the end...
                 if (index < length - 1) {
                   acc.push(current);
                 }
@@ -156,15 +163,20 @@ videojs.registerPlugin('displayBCTranscript', function() {
 });
 
 function formatTime(time, endTime) {
-    const date = new Date(null);
-    date.setSeconds(time);
-    if (endTime < 60) {
-        return date.toISOString().substr(17, 2) + 's';
+    try {
+        const date = new Date(null);
+        date.setSeconds(time);
+        if (endTime < 60) {
+            return date.toISOString().substr(17, 2) + 's';
+        }
+        else if (endTime < 3600) {
+            return date.toISOString().substr(14, 5);
+        }
+        return date.toISOString().substr(11, 8);
     }
-    else if (endTime < 3600) {
-        return date.toISOString().substr(14, 5);
+    catch (e) {
+        return '';
     }
-    return date.toISOString().substr(11, 8);
 }
 
 
