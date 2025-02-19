@@ -80,9 +80,10 @@ videojs.registerPlugin('displayBCTranscript', function() {
             return;
         }
         const formattedItems = items.reduce((acc, {start_time, end_time, content}, index) => {
+
             let current = acc.at(-1);
-            // Is this a break?
-            if (start_time === null) {
+            // Is this a break? Ends in a period or question mark?
+            if (start_time === null || /[.,?!;:]$/.test(content)) {
                 // Ignore multiple breaks
                 if (current.content === undefined) {
                     return acc;
