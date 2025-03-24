@@ -35,7 +35,7 @@ nav.vjs-transcript-panel {
     }
 
     @container videojs (width > 600px) {
-        .vjs-transcript-active:not(.vjs-fullscreen) > *:not(nav.vjs-transcript-panel) {
+        .vjs-transcript-active:not(.vjs-fullscreen) > *:not(nav.vjs-transcript-panel, .vjs-loading-spinner, .vjs-contextmenu-ui-menu) {
             transition: margin-left 0.1s, width 0.1s;
             margin-left: max(25%, 200px);
             width: calc(100% - max(25%, 200px));
